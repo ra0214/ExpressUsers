@@ -1,11 +1,14 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { Producto, CategoriaProducto, FiltroProductos } from '../models/producto.model';
 import { ProductoService } from '../services/producto.service';
 import { CarritoService } from '../services/carrito.service';
 import { SweetAlertService } from '../services/sweet-alert.service';
 import { ComentariosService } from '../services/comentarios.service';
+import { WebSocketService } from '../services/websocket.service';
 
 @Component({
   selector: 'app-productos',
@@ -14,13 +17,17 @@ import { ComentariosService } from '../services/comentarios.service';
   templateUrl: './productos.component.html',
   styleUrls: ['./productos.component.css']
 })
-export class ProductosComponent implements OnInit {
+export class ProductosComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  private isBrowser: boolean;
+
   productos: Producto[] = [];
   productosFiltrados: Producto[] = [];
   categorias = Object.values(CategoriaProducto);
   filtros: FiltroProductos = {};
   loading = false;
   error: string | null = null;
+  wsConnected = false;
   
   // Número de WhatsApp (cambiar por el número real)
   private numeroWhatsApp = '529612165495'; // Formato: código país + número sin +
@@ -48,11 +55,70 @@ export class ProductosComponent implements OnInit {
     private productoService: ProductoService,
     private carritoService: CarritoService,
     private sweetAlert: SweetAlertService,
-    private comentariosService: ComentariosService
-  ) {}
+    private comentariosService: ComentariosService,
+    private webSocketService: WebSocketService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   ngOnInit(): void {
     this.cargarProductos();
+    this.initWebSocket();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.webSocketService.disconnect();
+  }
+
+  private initWebSocket(): void {
+    if (this.isBrowser) {
+      // Conectar WebSocket
+      this.webSocketService.connect();
+
+      // Escuchar estado de conexión
+      this.webSocketService.getConnectionStatus()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(connected => {
+          this.wsConnected = connected;
+          if (connected) {
+            console.log('🔗 WebSocket conectado en Productos');
+          }
+        });
+
+      // Escuchar actualizaciones de productos
+      this.webSocketService.onProductUpdate()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(productData => {
+          console.log('📦 Producto actualizado en tiempo real:', productData);
+          this.cargarProductos(); // Recargar productos para reflejar cambios
+          this.sweetAlert.success(
+            'Producto actualizado',
+            'Los productos han sido actualizados en tiempo real'
+          );
+        });
+
+      // Escuchar nuevos comentarios
+      this.webSocketService.onNewComment()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(commentData => {
+          console.log('💬 Nuevo comentario recibido:', commentData);
+          // Si estamos viendo comentarios del producto actualizado
+          if (this.productoSeleccionado && commentData.product_id === this.productoSeleccionado.id) {
+            this.cargarComentarios(this.productoSeleccionado.id);
+          }
+        });
+
+      // Escuchar actualizaciones de inventario
+      this.webSocketService.onInventoryUpdate()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(inventoryData => {
+          console.log('📊 Inventario actualizado:', inventoryData);
+          this.cargarProductos(); // Recargar para reflejar disponibilidad
+        });
+    }
   }
 
   cargarProductos(): void {

@@ -8,6 +8,7 @@ import { HomeService } from '../services/home.service';
 import { CarritoService } from '../services/carrito.service';
 import { SweetAlertService } from '../services/sweet-alert.service';
 import { ComentariosService } from '../services/comentarios.service';
+import { WebSocketService } from '../services/websocket.service';
 import { HomeData, TestimonioCliente, CategoriaDestacada } from '../models/home.model';
 
 @Component({
@@ -31,12 +32,14 @@ export class HomeComponent implements OnInit, OnDestroy {
   // Variables para animaciones y efectos
   contadorAnimado = false;
   estadisticasVisibles = false;
+  wsConnected = false;
 
   constructor(
     private homeService: HomeService,
     private carritoService: CarritoService,
     private sweetAlert: SweetAlertService,
     private comentariosService: ComentariosService,
+    private webSocketService: WebSocketService,
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
@@ -47,6 +50,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.cargarDatosHome();
     this.cargarComentariosReales();
     this.iniciarCarruselTestimonios();
+    this.initWebSocket();
     
     if (this.isBrowser) {
       this.configurarAnimacionesScroll();
@@ -56,9 +60,55 @@ export class HomeComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.webSocketService.disconnect();
     
     if (this.testimonioInterval) {
       clearInterval(this.testimonioInterval);
+    }
+  }
+
+  private initWebSocket(): void {
+    if (this.isBrowser) {
+      // Conectar WebSocket
+      this.webSocketService.connect();
+
+      // Escuchar estado de conexión
+      this.webSocketService.getConnectionStatus()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(connected => {
+          this.wsConnected = connected;
+          if (connected) {
+            console.log('🔗 WebSocket conectado en Home');
+          }
+        });
+
+      // Escuchar actualizaciones de productos
+      this.webSocketService.onProductUpdate()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(productData => {
+          console.log('📦 Producto actualizado en tiempo real:', productData);
+          this.cargarDatosHome(); // Recargar datos para reflejar cambios
+        });
+
+      // Escuchar nuevos comentarios
+      this.webSocketService.onNewComment()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(commentData => {
+          console.log('💬 Nuevo comentario recibido:', commentData);
+          this.cargarComentariosReales(); // Recargar comentarios
+          this.sweetAlert.success(
+            'Nuevo comentario',
+            'Se ha agregado un nuevo comentario'
+          );
+        });
+
+      // Escuchar actualizaciones de inventario
+      this.webSocketService.onInventoryUpdate()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(inventoryData => {
+          console.log('📊 Inventario actualizado:', inventoryData);
+          this.cargarDatosHome(); // Recargar datos
+        });
     }
   }
 
