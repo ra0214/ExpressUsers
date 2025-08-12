@@ -1,0 +1,105 @@
+<footer class="footer">
+  <div class="footer-container">
+    <!-- Sección principal del footer -->
+    <div class="footer-content">
+      
+      <!-- Logo y descripción -->
+      <div class="footer-section footer-brand">
+        <div class="footer-logo">
+          <img src="assets/logo.jpg" alt="EXPRESS Arte Logo" class="footer-logo-img" />
+          <h3>EXPRESS Arte</h3>
+        </div>
+        <p class="footer-description">
+          Creamos productos artesanales únicos hechos a mano con amor y dedicación. 
+          Cada pieza cuenta una historia especial.
+        </p>
+        <div class="footer-social">
+          <button 
+            *ngFor="let social of socialLinks" 
+            (click)="openSocialLink(social.url)"
+            class="social-btn"
+            [style.background]="social.color"
+            [title]="social.name">
+            <i [class]="social.icon"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Enlaces rápidos -->
+      <div class="footer-section">
+        <h4>Enlaces Rápidos</h4>
+        <ul class="footer-links">
+          <li><a href="/productos">Productos</a></li>
+          <li><a href="#nosotros">Sobre Nosotros</a></li>
+          <li><a href="#proceso">Nuestro Proceso</a></li>
+          <li><a href="#testimonios">Testimonios</a></li>
+        </ul>
+      </div>
+
+      <!-- Categorías de productos -->
+      <div class="footer-section">
+        <h4>Categorías</h4>
+        <ul class="footer-links">
+          <li><a href="#pinturas">Pinturas</a></li>
+          <li><a href="#manualidades">Manualidades</a></li>
+          <li><a href="#decoracion">Decoración</a></li>
+          <li><a href="#regalos">Regalos</a></li>
+          <li><a href="#personalizados">Personalizados</a></li>
+        </ul>
+      </div>
+
+      <!-- Información de contacto -->
+      <div class="footer-section">
+        <h4>Contacto</h4>
+        <div class="contact-info">
+          <div class="contact-item">
+            <i class="fas fa-envelope"></i>
+            <span>{{ supportInfo.email }}</span>
+          </div>
+          <div class="contact-item">
+            <i class="fas fa-phone"></i>
+            <span>{{ supportInfo.phone }}</span>
+          </div>
+          <div class="contact-item">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>Tuxtla Gutiérrez, Chiapas, México</span>
+          </div>
+        </div>
+        
+        <!-- Botón de soporte -->
+        <button 
+          (click)="contactSupport()" 
+          class="support-btn">
+          <i class="fab fa-whatsapp"></i>
+          Soporte WhatsApp
+        </button>
+      </div>
+    </div>
+
+    <!-- Línea divisoria -->
+    <div class="footer-divider"></div>
+
+    <!-- Footer inferior -->
+    <div class="footer-bottom">
+      <div class="footer-bottom-content">
+        <div class="copyright">
+          <p>© {{ currentYear }} EXPRESS Arte. Todos los derechos reservados.</p>
+        </div>
+        <div class="credits">
+          <p>
+            Desarrollado por 
+            <a href="https://github.com/ra0214" target="_blank" class="dev-link">
+              <i class="fab fa-github"></i>
+              &#64;ra0214
+            </a>
+          </p>
+        </div>
+        <div class="footer-legal">
+          <a href="#privacy">Política de Privacidad</a>
+          <span class="separator">•</span>
+          <a href="#terms">Términos de Uso</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

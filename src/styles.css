@@ -1,0 +1,110 @@
+/* You can add global styles to this file, and also import other style files */
+
+/* Estilos personalizados para SweetAlert2 */
+.success-toast {
+  border-radius: 12px !important;
+  font-family: inherit !important;
+}
+
+.error-alert,
+.warning-alert,
+.info-alert,
+.confirm-alert {
+  border-radius: 16px !important;
+  font-family: inherit !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
+}
+
+.loading-alert {
+  border-radius: 16px !important;
+  font-family: inherit !important;
+}
+
+.cart-toast {
+  border-radius: 12px !important;
+  font-family: inherit !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.cart-toast-title {
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+}
+
+.cart-toast-content {
+  font-size: 0.9rem !important;
+}
+
+.order-success {
+  border-radius: 20px !important;
+  font-family: inherit !important;
+  box-shadow: 0 15px 50px rgba(37, 211, 102, 0.3) !important;
+}
+
+.whatsapp-button {
+  border-radius: 25px !important;
+  padding: 12px 30px !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+}
+
+.form-validation {
+  border-radius: 16px !important;
+  font-family: inherit !important;
+  box-shadow: 0 10px 40px rgba(255, 215, 0, 0.2) !important;
+}
+
+.custom-success-toast {
+  border-radius: 12px !important;
+  font-family: inherit !important;
+  font-weight: 600 !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Personalización de iconos SweetAlert */
+.swal2-icon.swal2-success {
+  border-color: #25d366 !important;
+  color: #25d366 !important;
+}
+
+.swal2-icon.swal2-success .swal2-success-line {
+  background-color: #25d366 !important;
+}
+
+.swal2-icon.swal2-error {
+  border-color: #ff4757 !important;
+  color: #ff4757 !important;
+}
+
+.swal2-icon.swal2-warning {
+  border-color: #ffd700 !important;
+  color: #ffd700 !important;
+}
+
+.swal2-icon.swal2-info {
+  border-color: #40e0d0 !important;
+  color: #40e0d0 !important;
+}
+
+.swal2-icon.swal2-question {
+  border-color: #ff6b35 !important;
+  color: #ff6b35 !important;
+}
+
+/* Animaciones personalizadas */
+@keyframes heartBeat {
+  0% { transform: scale(1); }
+  14% { transform: scale(1.1); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.1); }
+  70% { transform: scale(1); }
+}
+
+.animate__animated.animate__heartBeat {
+  animation: heartBeat 1.5s ease-in-out;
+}
+
+/* Progress bar personalizada */
+.swal2-timer-progress-bar {
+  background: linear-gradient(90deg, #ff6b35, #ffd700) !important;
+}

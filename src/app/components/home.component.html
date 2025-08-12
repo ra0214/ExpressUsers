@@ -1,0 +1,269 @@
+<!-- Loading Spinner -->
+<div *ngIf="loading" class="loading-container">
+  <div class="spinner"></div>
+  <p>Cargando...</p>
+</div>
+
+<!-- Contenido Principal -->
+<div *ngIf="!loading && homeData" class="home-container">
+  
+  <!-- Hero Section -->
+  <section class="hero-section" [style.background-image]="'url(' + homeData.hero.imagenFondo + ')'">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <div class="container">
+        <div class="hero-text">
+          <div class="hero-logo animate-fade-in">
+            <img src="assets/logo.jpg" alt="EXPRESS Arte Logo" (error)="onImageError($event)">
+          </div>
+          <h1 class="hero-title animate-fade-in-delay">{{homeData.hero.titulo}}</h1>
+          <h2 class="hero-subtitle animate-fade-in-delay-2">{{homeData.hero.subtitulo}}</h2>
+          <p class="hero-description animate-fade-in-delay-3">{{homeData.hero.descripcion}}</p>
+          <div class="hero-buttons animate-fade-in-delay-4">
+            <button class="btn-primary" (click)="navegarAProductos()">
+              <i class="fas fa-shopping-bag"></i>
+              {{homeData.hero.botonTexto}}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="scroll-indicator" (click)="scrollToSection('caracteristicas')">
+      <i class="fas fa-chevron-down"></i>
+    </div>
+  </section>
+
+  <!-- Características del Servicio -->
+  <section id="caracteristicas" class="caracteristicas-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">¿Por qué elegir EXPRESS Arte?</h2>
+        <p class="section-subtitle">Descubre lo que nos hace únicos en el mundo del arte y la creatividad</p>
+      </div>
+      <div class="caracteristicas-grid">
+        <div class="caracteristica-card" *ngFor="let caracteristica of homeData.caracteristicas; let i = index"
+             [style.animation-delay]="(i * 0.2) + 's'">
+          <div class="caracteristica-icon">
+            <i [class]="caracteristica.icono"></i>
+          </div>
+          <h3 class="caracteristica-titulo">{{caracteristica.titulo}}</h3>
+          <p class="caracteristica-descripcion">{{caracteristica.descripcion}}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categorías Destacadas -->
+  <section class="categorias-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Nuestras Categorías</h2>
+        <p class="section-subtitle">Explora nuestra amplia gama de productos creativos</p>
+      </div>
+      <div class="categorias-grid">
+        <div class="categoria-card" *ngFor="let categoria of homeData.categorias; let i = index"
+             (click)="navegarACategoria(categoria)"
+             [style.animation-delay]="(i * 0.15) + 's'">
+          <div class="categoria-image">
+            <img [src]="categoria.imagen" [alt]="categoria.nombre" 
+                 (error)="onImageError($event)">
+            <div class="categoria-overlay">
+              <div class="categoria-info">
+                <h3 class="categoria-nombre">{{categoria.nombre}}</h3>
+                <p class="categoria-descripcion">{{categoria.descripcion}}</p>
+                <span class="categoria-contador">{{categoria.cantidadProductos}} productos</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Estadísticas -->
+  <section class="estadisticas-section">
+    <div class="container">
+      <div class="estadisticas-grid">
+        <div class="estadistica-item" *ngFor="let estadistica of homeData.estadisticas; let i = index"
+             [style.animation-delay]="(i * 0.1) + 's'">
+          <div class="estadistica-icon">
+            <i [class]="estadistica.icono"></i>
+          </div>
+          <div class="estadistica-numero contador-numero">{{estadistica.numero}}</div>
+          <div class="estadistica-descripcion">{{estadistica.descripcion}}</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sobre Nosotros -->
+  <section class="sobre-nosotros-section">
+    <div class="container">
+      <div class="sobre-nosotros-content">
+        <div class="sobre-nosotros-text">
+          <h2 class="section-title">{{homeData.sobreNosotros.titulo}}</h2>
+          <p class="sobre-nosotros-descripcion">{{homeData.sobreNosotros.descripcion}}</p>
+          <ul class="puntos-clave">
+            <li *ngFor="let punto of homeData.sobreNosotros.puntosClave">
+              <i class="fas fa-check-circle"></i>
+              {{punto}}
+            </li>
+          </ul>
+          <button class="btn-outline" (click)="contactarWhatsApp()">
+            <i class="fab fa-whatsapp"></i>
+            Conoce más sobre nosotros
+          </button>
+        </div>
+        <div class="sobre-nosotros-image">
+          <img [src]="homeData.sobreNosotros.imagen" alt="Sobre nosotros" 
+               (error)="onImageError($event)">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonios -->
+  <section class="testimonios-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">Lo que dicen nuestros clientes</h2>
+        <p class="section-subtitle">Experiencias reales de personas que confían en nosotros</p>
+      </div>
+      
+      <!-- Loading de comentarios -->
+      <div *ngIf="loadingComentarios" class="loading-testimonios">
+        <div class="spinner"></div>
+        <p>Cargando comentarios...</p>
+      </div>
+
+      <!-- Comentarios reales de la API -->
+      <div *ngIf="!loadingComentarios && comentariosReales.length > 0" class="testimonios-carousel">
+        <div class="testimonio-container">
+          <div class="testimonio-card" *ngIf="getCurrentTestimonio() as testimonio">
+            <div class="testimonio-content">
+              <div class="testimonio-avatar">
+                <i class="fas fa-user-circle"></i>
+              </div>
+              <div class="testimonio-texto">
+                <div class="testimonio-rating">
+                  <span *ngFor="let estrella of generarEstrellas(testimonio.rating)" 
+                        class="estrella" 
+                        [class.filled]="estrella === '★'">{{ estrella }}</span>
+                </div>
+                <p class="testimonio-comentario">"{{ testimonio.comment }}"</p>
+                <div class="testimonio-autor">
+                  <h4 class="testimonio-nombre">{{ testimonio.user_name }}</h4>
+                  <span class="testimonio-fecha">{{ formatearFechaComentario(testimonio.created_at) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Controles del carrusel -->
+        <div class="carousel-controls">
+          <button class="carousel-btn prev" (click)="testimonioAnterior()">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <div class="carousel-dots">
+            <span class="dot" 
+                  *ngFor="let comentario of comentariosReales; let i = index"
+                  [class.active]="i === currentTestimonioIndex"
+                  (click)="irATestimonio(i)"></span>
+          </div>
+          <button class="carousel-btn next" (click)="siguienteTestimonio()">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Fallback a testimonios hardcodeados si no hay comentarios de la API -->
+      <div *ngIf="!loadingComentarios && comentariosReales.length === 0 && homeData?.testimonios" class="testimonios-carousel">
+        <div class="testimonio-container">
+          <div class="testimonio-card" *ngIf="homeData.testimonios[currentTestimonioIndex] as testimonio">
+            <div class="testimonio-content">
+              <div class="testimonio-avatar">
+                <img [src]="testimonio.avatar" [alt]="testimonio.nombre" 
+                     (error)="onImageError($event)">
+              </div>
+              <div class="testimonio-texto">
+                <div class="testimonio-rating">
+                  <i class="fas fa-star" 
+                     *ngFor="let star of getStars(testimonio.rating)"
+                     [class.filled]="star === 1"></i>
+                </div>
+                <p class="testimonio-comentario">"{{testimonio.comentario}}"</p>
+                <div class="testimonio-autor">
+                  <h4 class="testimonio-nombre">{{testimonio.nombre}}</h4>
+                  <span class="testimonio-fecha">{{testimonio.fecha | date:'dd/MM/yyyy'}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Controles del carrusel -->
+        <div class="carousel-controls">
+          <button class="carousel-btn prev" (click)="testimonioAnterior()">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <div class="carousel-dots">
+            <span class="dot" 
+                  *ngFor="let testimonio of homeData.testimonios; let i = index"
+                  [class.active]="i === currentTestimonioIndex"
+                  (click)="irATestimonio(i)"></span>
+          </div>
+          <button class="carousel-btn next" (click)="siguienteTestimonio()">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mensaje si no hay comentarios -->
+      <div *ngIf="!loadingComentarios && comentariosReales.length === 0 && (!homeData?.testimonios || homeData.testimonios.length === 0)" 
+           class="sin-testimonios">
+        <i class="fas fa-comment-slash"></i>
+        <h3>Aún no hay comentarios</h3>
+        <p>Sé el primero en compartir tu experiencia con nuestros productos</p>
+        <button class="btn-primary" (click)="navegarAProductos()">
+          <i class="fas fa-shopping-bag"></i>
+          Ver Productos
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Call to Action Final -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-content">
+        <h2 class="cta-title">¿Listo para comenzar tu proyecto?</h2>
+        <p class="cta-subtitle">Únete a cientos de clientes satisfechos y crea algo extraordinario</p>
+        <div class="cta-buttons">
+          <button class="btn-primary large" (click)="navegarAProductos()">
+            <i class="fas fa-shopping-bag"></i>
+            Ver Productos
+          </button>
+          <button class="btn-whatsapp large" (click)="contactarWhatsApp()">
+            <i class="fab fa-whatsapp"></i>
+            Consulta Personalizada
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Error State -->
+<div *ngIf="!loading && !homeData" class="error-container">
+  <div class="error-content">
+    <i class="fas fa-exclamation-triangle"></i>
+    <h2>Error al cargar la página</h2>
+    <p>No se pudieron cargar los datos. Por favor, recarga la página.</p>
+    <button class="btn-primary" (click)="cargarDatosHome()">
+      <i class="fas fa-redo"></i>
+      Reintentar
+    </button>
+  </div>
+</div>

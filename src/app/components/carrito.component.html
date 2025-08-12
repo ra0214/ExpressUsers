@@ -1,0 +1,212 @@
+<!-- Overlay del carrito -->
+<div class="carrito-overlay" *ngIf="mostrarCarrito" (click)="cerrarCarrito()">
+  <div class="carrito-modal" (click)="$event.stopPropagation()">
+    <!-- Header del carrito -->
+    <div class="carrito-header">
+      <h2 *ngIf="!mostrandoCheckout">
+        <i class="fas fa-shopping-cart"></i>
+        Mi Carrito ({{ carrito.cantidadItems }})
+      </h2>
+      <h2 *ngIf="mostrandoCheckout">
+        <i class="fas fa-credit-card"></i>
+        Finalizar Pedido
+      </h2>
+      <button class="btn-cerrar" (click)="cerrarCarrito()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Contenido del carrito -->
+    <div class="carrito-contenido" *ngIf="!mostrandoCheckout">
+      <!-- Carrito vacío -->
+      <div *ngIf="carrito.items.length === 0" class="carrito-vacio">
+        <i class="fas fa-shopping-cart carrito-vacio-icono"></i>
+        <h3>Tu carrito está vacío</h3>
+        <p>¡Agrega algunos productos para comenzar!</p>
+        <button class="btn-seguir-comprando" (click)="cerrarCarrito()">
+          Seguir Comprando
+        </button>
+      </div>
+
+      <!-- Items del carrito -->
+      <div *ngIf="carrito.items.length > 0" class="carrito-items">
+        <div *ngFor="let item of carrito.items" class="carrito-item">
+          <div class="item-imagen">
+            <img 
+              [src]="item.producto.image_url || 'assets/images/placeholder.jpg'" 
+              [alt]="item.producto.name"
+              (error)="onImageError($event)">
+          </div>
+          
+          <div class="item-info">
+            <h4>{{ item.producto.name }}</h4>
+            <p class="item-precio">${{ item.producto.price.toFixed(2) }}</p>
+            <p class="item-categoria">{{ item.producto.category }}</p>
+          </div>
+
+          <div class="item-cantidad">
+            <button 
+              class="btn-cantidad" 
+              (click)="actualizarCantidad(item.producto.id, item.cantidad - 1)">
+              <i class="fas fa-minus"></i>
+            </button>
+            <span class="cantidad">{{ item.cantidad }}</span>
+            <button 
+              class="btn-cantidad" 
+              (click)="actualizarCantidad(item.producto.id, item.cantidad + 1)">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+
+          <div class="item-subtotal">
+            <span>${{ item.subtotal.toFixed(2) }}</span>
+            <button 
+              class="btn-eliminar" 
+              (click)="eliminarItem(item.producto.id)"
+              title="Eliminar del carrito">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Checkout -->
+    <div class="checkout-contenido" *ngIf="mostrandoCheckout">
+      <div class="checkout-resumen">
+        <h3>Resumen del Pedido</h3>
+        <div class="resumen-items">
+          <div *ngFor="let item of carrito.items" class="resumen-item">
+            <span>{{ item.producto.name }} (x{{ item.cantidad }})</span>
+            <span>${{ item.subtotal.toFixed(2) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <form class="checkout-form" (ngSubmit)="procesarPedido()">
+        <div class="form-grupo">
+          <label for="nombre">Nombre completo *</label>
+          <input 
+            type="text" 
+            id="nombre"
+            [(ngModel)]="datosCliente.nombre" 
+            name="nombre"
+            required 
+            placeholder="Tu nombre completo">
+        </div>
+
+        <div class="form-grupo">
+          <label for="telefono">Teléfono *</label>
+          <input 
+            type="tel" 
+            id="telefono"
+            [(ngModel)]="datosCliente.telefono" 
+            name="telefono"
+            required 
+            placeholder="Número de WhatsApp">
+        </div>
+
+        <div class="form-grupo">
+          <label for="email">Email *</label>
+          <input 
+            type="email" 
+            id="email"
+            [(ngModel)]="datosCliente.email" 
+            name="email"
+            required 
+            placeholder="tu@email.com">
+        </div>
+
+        <div class="form-grupo">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              [(ngModel)]="envioDomicilio" 
+              name="envioDomicilio">
+            <span class="checkmark"></span>
+            Envío a domicilio (+${{ costoEnvio.toFixed(2) }})
+          </label>
+        </div>
+
+        <div class="form-grupo" *ngIf="envioDomicilio">
+          <label for="direccion">Dirección de envío *</label>
+          <textarea 
+            id="direccion"
+            [(ngModel)]="datosCliente.direccion" 
+            name="direccion"
+            placeholder="Dirección completa para el envío"
+            rows="3"></textarea>
+        </div>
+
+        <div class="form-grupo">
+          <label for="notas">Notas adicionales</label>
+          <textarea 
+            id="notas"
+            [(ngModel)]="datosCliente.notas" 
+            name="notas"
+            placeholder="Comentarios especiales sobre tu pedido..."
+            rows="3"></textarea>
+        </div>
+      </form>
+    </div>
+
+    <!-- Footer del carrito -->
+    <div class="carrito-footer" *ngIf="carrito.items.length > 0">
+      <div *ngIf="!mostrandoCheckout">
+        <div class="total-section">
+          <div class="subtotal">
+            <span>Subtotal:</span>
+            <span>${{ carrito.total.toFixed(2) }}</span>
+          </div>
+          <div class="envio" *ngIf="envioDomicilio">
+            <span>Envío:</span>
+            <span>${{ costoEnvio.toFixed(2) }}</span>
+          </div>
+          <div class="total">
+            <span>Total:</span>
+            <span>${{ totalConEnvio.toFixed(2) }}</span>
+          </div>
+        </div>
+
+        <div class="carrito-acciones">
+          <button class="btn-vaciar" (click)="vaciarCarrito()">
+            <i class="fas fa-trash"></i>
+            Vaciar Carrito
+          </button>
+          <button class="btn-checkout" (click)="iniciarCheckout()">
+            <i class="fas fa-credit-card"></i>
+            Finalizar Pedido
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="mostrandoCheckout">
+        <div class="total-section">
+          <div class="subtotal">
+            <span>Subtotal:</span>
+            <span>${{ carrito.total.toFixed(2) }}</span>
+          </div>
+          <div class="envio" *ngIf="envioDomicilio">
+            <span>Envío:</span>
+            <span>${{ costoEnvio.toFixed(2) }}</span>
+          </div>
+          <div class="total">
+            <span>TOTAL:</span>
+            <span>${{ totalConEnvio.toFixed(2) }}</span>
+          </div>
+        </div>
+
+        <div class="checkout-acciones">
+          <button type="button" class="btn-volver" (click)="volver()">
+            <i class="fas fa-arrow-left"></i>
+            Volver
+          </button>
+          <button type="submit" class="btn-enviar" (click)="procesarPedido()">
+            <i class="fab fa-whatsapp"></i>
+            Enviar Pedido
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,373 @@
+<!-- Header -->
+<header class="hero-section">
+  <div class="hero-content">
+    <div class="logo-container">
+      <img src="assets/logo.jpg" alt="EXPRESS Arte Logo" class="logo" />
+    </div>
+    <div class="hero-text">
+      <h1 class="hero-title">EXPRESS Arte</h1>
+      <p class="hero-subtitle">Descubre nuestra colección única de productos hechos a mano con amor y dedicación</p>
+    </div>
+  </div>
+</header>
+
+<div class="productos-container">
+  <!-- Loading state -->
+  <div *ngIf="loading" class="loading-container">
+    <p>Cargando productos...</p>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="error" class="error-container">
+    <p>{{ error }}</p>
+    <button type="button" (click)="refrescarProductos()" class="btn-refrescar">
+      Intentar de nuevo
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading && !error">
+    <!-- Filtros -->
+    <section class="filtros-section">
+      <div class="filtros-container">
+        <h3>Filtrar Productos</h3>
+        <div class="filtros-form">
+          <div class="filtro-grupo">
+            <label for="busqueda">Buscar:</label>
+            <input 
+              id="busqueda"
+              type="text" 
+              [(ngModel)]="busqueda" 
+              placeholder="Buscar productos..." 
+              class="input-busqueda"
+              (input)="aplicarFiltros()">
+          </div>
+
+          <div class="filtro-grupo">
+            <label for="categoria">Categoría:</label>
+            <select 
+              id="categoria"
+              [(ngModel)]="categoriaSeleccionada" 
+              (change)="aplicarFiltros()" 
+              class="select-categoria">
+              <option value="">Todas las categorías</option>
+              <option 
+                *ngFor="let categoria of categorias" 
+                [value]="categoria">
+                {{ getCategoriaLabel(categoria) }}
+              </option>
+            </select>
+          </div>
+
+          <div class="filtro-grupo">
+            <label for="precioMin">Precio mínimo:</label>
+            <input 
+              id="precioMin"
+              type="number" 
+              [(ngModel)]="precioMin" 
+              placeholder="0" 
+              min="0" 
+              class="input-precio"
+              (input)="aplicarFiltros()">
+          </div>
+
+          <div class="filtro-grupo">
+            <label for="precioMax">Precio máximo:</label>
+            <input 
+              id="precioMax"
+              type="number" 
+              [(ngModel)]="precioMax" 
+              placeholder="1000" 
+              min="0" 
+              class="input-precio"
+              (input)="aplicarFiltros()">
+          </div>
+
+          <div class="filtro-acciones">
+            <button 
+              type="button" 
+              (click)="limpiarFiltros()" 
+              class="btn-limpiar">
+              Limpiar Filtros
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Productos -->
+    <section class="productos-section" id="productos-section">
+      <div class="productos-grid" *ngIf="productosFiltrados.length > 0; else noProductos">
+        <div 
+          *ngFor="let producto of productosFiltrados" 
+          class="producto-card"
+          [class.no-disponible]="producto.disponible === false">
+          
+          <div class="producto-imagen">
+            <img 
+              [src]="producto.image_url || 'assets/images/placeholder.jpg'" 
+              [alt]="producto.name"
+              (error)="onImageError($event)"
+              class="imagen">
+            <div 
+              *ngIf="producto.disponible === false" 
+              class="overlay-no-disponible">
+              <span>No Disponible</span>
+            </div>
+          </div>
+
+          <div class="producto-info">
+            <h3 class="producto-titulo">{{ producto.name }}</h3>
+            <p class="producto-descripcion">{{ producto.description }}</p>
+            
+            <div class="producto-detalles">
+              <span class="producto-categoria">
+                {{ getCategoriaLabel(producto.category) }}
+              </span>
+              <span class="producto-precio">${{ producto.price.toFixed(2) }}</span>
+            </div>
+
+            <div class="producto-acciones">
+              <button 
+                type="button" 
+                class="btn-agregar-carrito"
+                [disabled]="producto.disponible === false"
+                (click)="agregarAlCarrito(producto, $event)">
+                <i class="fas fa-shopping-cart"></i>
+                {{ producto.disponible !== false ? 'Agregar al Carrito' : 'No Disponible' }}
+              </button>
+              
+              <div class="acciones-secundarias">
+                <button 
+                  type="button" 
+                  class="btn-contactar"
+                  [disabled]="producto.disponible === false"
+                  (click)="contactarPorWhatsApp(producto)"
+                  title="Consultar por WhatsApp">
+                  <i class="fab fa-whatsapp"></i>
+                  <span>Consultar</span>
+                </button>
+                
+                <button 
+                  type="button" 
+                  class="btn-comentarios"
+                  (click)="verComentarios(producto, $event)"
+                  title="Ver comentarios">
+                  <i class="fas fa-comments"></i>
+                  <span>Ver Comentarios</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No hay productos -->
+      <ng-template #noProductos>
+        <div class="no-productos">
+          <div class="no-productos-content">
+            <h3>No se encontraron productos</h3>
+            <p>Intenta ajustar los filtros para encontrar lo que buscas.</p>
+            <button 
+              type="button" 
+              (click)="limpiarFiltros()" 
+              class="btn-limpiar">
+              Ver Todos los Productos
+            </button>
+          </div>
+        </div>
+      </ng-template>
+    </section>
+
+    <!-- Sección de Comentarios -->
+    <section *ngIf="mostrarComentarios && productoSeleccionado" 
+             class="comentarios-section" 
+             id="comentarios-section">
+      <div class="comentarios-container">
+        <div class="section-header">
+          <h2 class="section-title">
+            <i class="fas fa-comments"></i>
+            Comentarios para "{{ productoSeleccionado.name }}"
+          </h2>
+          <button type="button" class="btn-cerrar-comentarios" (click)="cerrarComentarios()">
+            <i class="fas fa-times"></i>
+            Cerrar
+          </button>
+        </div>
+
+        <div class="comentarios-content">
+          <!-- Estadísticas de comentarios -->
+          <div class="estadisticas-comentarios">
+            <h3>Estadísticas de Comentarios</h3>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-number">{{ comentarios.length }}</div>
+                <div class="stat-label">Total Comentarios</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number">{{ calcularPromedioRating() | number:'1.1-1' }}</div>
+                <div class="stat-label">Promedio Rating</div>
+              </div>
+              <div class="stat-card rating-breakdown">
+                <div class="stat-label">Distribución de Ratings</div>
+                <div class="rating-bars">
+                  <div *ngFor="let rating of [5,4,3,2,1]" class="rating-bar">
+                    <span class="rating-label">{{ rating }}★</span>
+                    <div class="bar-container">
+                      <div class="bar-fill" [style.width.%]="calcularPorcentajeRating(rating)"></div>
+                    </div>
+                    <span class="rating-count">({{ contarRating(rating) }})</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lista de comentarios existentes -->
+          <div class="comentarios-existentes">
+            <h3>Comentarios de Clientes</h3>
+            
+            <div *ngIf="cargandoComentarios" class="loading-comentarios">
+              <i class="fas fa-spinner fa-spin"></i>
+              <p>Cargando comentarios...</p>
+            </div>
+
+            <div *ngIf="!cargandoComentarios && comentarios.length === 0" class="sin-comentarios">
+              <i class="fas fa-comment-slash"></i>
+              <p>No hay comentarios aún. ¡Sé el primero en comentar!</p>
+            </div>
+
+            <div *ngIf="!cargandoComentarios && comentarios.length > 0" class="comentarios-lista">
+              <div *ngFor="let comentario of comentarios; let i = index" 
+                   class="comentario-card" 
+                   [class.destacado]="i < 3">
+                <div class="comentario-header">
+                  <div class="comentario-autor">
+                    <i class="fas fa-user-circle"></i>
+                    <span>{{ comentario.user_name }}</span>
+                  </div>
+                  <div class="comentario-rating">
+                    <div class="estrellas">
+                      <span *ngFor="let estrella of generarEstrellas(comentario.rating)" 
+                            class="estrella" 
+                            [class.llena]="estrella === '★'">{{ estrella }}</span>
+                    </div>
+                    <span class="rating-numero">({{ comentario.rating }}/5)</span>
+                  </div>
+                  <div class="comentario-fecha">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>{{ formatearFecha(comentario.created_at) }}</span>
+                  </div>
+                </div>
+                <div class="comentario-contenido">
+                  <p>{{ comentario.comment }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Formulario para agregar comentario -->
+          <div class="agregar-comentario-section">
+            <h3>Agregar tu Comentario</h3>
+            <form (ngSubmit)="agregarComentario()" class="comentario-form">
+              <div class="form-row">
+                <div class="form-grupo">
+                  <label for="nombreUsuario">
+                    <i class="fas fa-user"></i>
+                    Tu nombre *
+                  </label>
+                  <input 
+                    id="nombreUsuario"
+                    type="text" 
+                    [(ngModel)]="nuevoComentario.user_name" 
+                    name="user_name"
+                    placeholder="Escribe tu nombre completo" 
+                    required
+                    class="input-nombre">
+                </div>
+
+                <div class="form-grupo">
+                  <label for="rating">
+                    <i class="fas fa-star"></i>
+                    Tu calificación *
+                  </label>
+                  <div class="rating-selector">
+                    <div class="estrellas-interactivas">
+                      <span *ngFor="let i of [1,2,3,4,5]" 
+                            class="estrella-seleccionable"
+                            [class.selected]="i <= nuevoComentario.rating"
+                            [class.hover]="i <= ratingHover"
+                            (click)="seleccionarRating(i)"
+                            (mouseenter)="ratingHover = i"
+                            (mouseleave)="ratingHover = 0">
+                        ★
+                      </span>
+                    </div>
+                    <span class="rating-texto">{{ obtenerTextoRating(nuevoComentario.rating) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-grupo">
+                <label for="comentarioTexto">
+                  <i class="fas fa-comment"></i>
+                  Tu comentario *
+                </label>
+                <textarea 
+                  id="comentarioTexto"
+                  [(ngModel)]="nuevoComentario.comment" 
+                  name="comment"
+                  placeholder="Comparte tu experiencia con este producto. ¿Qué te gustó más? ¿Lo recomendarías?" 
+                  required
+                  rows="4"
+                  maxlength="500"
+                  class="textarea-comentario"></textarea>
+                <div class="contador-caracteres">
+                  {{ nuevoComentario.comment.length }}/500 caracteres
+                </div>
+              </div>
+
+              <div class="form-acciones">
+                <button type="submit" 
+                        class="btn-enviar-comentario"
+                        [disabled]="!nuevoComentario.user_name.trim() || !nuevoComentario.comment.trim()">
+                  <i class="fas fa-paper-plane"></i>
+                  Publicar Comentario
+                </button>
+                <button type="button" class="btn-limpiar-form" (click)="limpiarFormulario()">
+                  <i class="fas fa-eraser"></i>
+                  Limpiar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Información adicional -->
+    <section class="info-section">
+      <div class="info-container">
+        <h2>¿Por qué elegir nuestros productos artesanales?</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <h4>Únicos y Originales</h4>
+            <p>Cada producto es creado a mano, garantizando que tengas algo verdaderamente único.</p>
+          </div>
+          <div class="info-item">
+            <h4>Calidad Superior</h4>
+            <p>Utilizamos materiales de la mejor calidad y técnicas tradicionales perfeccionadas.</p>
+          </div>
+          <div class="info-item">
+            <h4>Apoyo Local</h4>
+            <p>Al elegir nuestros productos, apoyas el trabajo artesanal y la economía local.</p>
+          </div>
+          <div class="info-item">
+            <h4>Personalizable</h4>
+            <p>Muchos de nuestros productos pueden personalizarse según tus necesidades específicas.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

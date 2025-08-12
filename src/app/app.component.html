@@ -1,0 +1,37 @@
+<!-- Barra de navegación principal -->
+<nav class="navbar">
+  <div class="navbar-container">
+    <!-- Logo y nombre de la empresa -->
+    <div class="navbar-brand">
+      <img src="assets/logo.jpg" alt="EXPRESS Arte" class="logo">
+      <span class="brand-name">EXPRESS Arte</span>
+    </div>
+    
+    <!-- Enlaces de navegación -->
+    <div class="navbar-menu">
+      <a routerLink="/" class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        <i class="fas fa-home"></i> Inicio
+      </a>
+      <a routerLink="/productos" class="nav-link" routerLinkActive="active">
+        <i class="fas fa-shopping-bag"></i> Productos
+      </a>
+      <a href="#contacto" class="nav-link">
+        <i class="fas fa-phone"></i> Contacto
+      </a>
+    </div>
+    
+    <!-- Botón del carrito -->
+    <app-carrito-boton></app-carrito-boton>
+  </div>
+</nav>
+
+<!-- Contenido principal -->
+<main class="main-content">
+  <router-outlet></router-outlet>
+</main>
+
+<!-- Footer -->
+<app-footer></app-footer>
+
+<!-- Modal del carrito -->
+<app-carrito></app-carrito>
