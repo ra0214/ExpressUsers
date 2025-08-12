@@ -51,9 +51,10 @@
               (change)="aplicarFiltros()" 
               class="select-categoria">
               <option value="">Todas las categorías</option>
+              <!-- Mostrar categorías usando el método helper -->
               <option 
-                *ngFor="let categoria of categorias" 
-                [value]="categoria">
+                *ngFor="let categoria of getTodasCategorias()" 
+                [value]="getCategoriaValue(categoria)">
                 {{ getCategoriaLabel(categoria) }}
               </option>
             </select>

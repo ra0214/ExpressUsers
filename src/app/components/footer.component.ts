@@ -15,7 +15,7 @@ export class FooterComponent {
   socialLinks = [
     {
       name: 'Facebook',
-      url: 'https://facebook.com/expressarte',
+      url: 'https://www.facebook.com/share/17ieejHR91/?mibextid=wwXIfr',
       icon: 'fab fa-facebook-f',
       color: '#1877f2'
     },
@@ -27,7 +27,7 @@ export class FooterComponent {
     },
     {
       name: 'WhatsApp',
-      url: 'https://wa.me/529612165495',
+      url: 'https://wa.me/529613677737',
       icon: 'fab fa-whatsapp',
       color: 'linear-gradient(45deg, #25d366 0%, #128c7e 100%)'
     },

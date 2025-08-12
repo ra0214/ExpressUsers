@@ -9,6 +9,7 @@ import { CarritoService } from '../services/carrito.service';
 import { SweetAlertService } from '../services/sweet-alert.service';
 import { ComentariosService } from '../services/comentarios.service';
 import { WebSocketService } from '../services/websocket.service';
+import { CategoriasService, Categoria } from '../services/categorias.service';
 
 @Component({
   selector: 'app-productos',
@@ -23,7 +24,8 @@ export class ProductosComponent implements OnInit, OnDestroy {
 
   productos: Producto[] = [];
   productosFiltrados: Producto[] = [];
-  categorias = Object.values(CategoriaProducto);
+  // categorias = Object.values(CategoriaProducto); // Ya no se usan categorías estáticas
+  categoriasAPI: Categoria[] = []; // Categorías desde la API
   filtros: FiltroProductos = {};
   loading = false;
   error: string | null = null;
@@ -57,6 +59,7 @@ export class ProductosComponent implements OnInit, OnDestroy {
     private sweetAlert: SweetAlertService,
     private comentariosService: ComentariosService,
     private webSocketService: WebSocketService,
+    private categoriasService: CategoriasService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -64,6 +67,7 @@ export class ProductosComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.cargarProductos();
+    this.cargarCategorias();
     this.initWebSocket();
   }
 
@@ -197,21 +201,6 @@ export class ProductosComponent implements OnInit, OnDestroy {
     this.productosFiltrados = this.productos;
     
     this.sweetAlert.customSuccessToast('Filtros limpiados', '🔄');
-  }
-
-  getCategoriaLabel(categoria: string): string {
-    const labels: { [key: string]: string } = {
-      'pinturas': 'Pinturas',
-      'regalos': 'Regalos',
-      'ramos-dulces': 'Ramos de Dulces',
-      'manualidades': 'Manualidades',
-      'decoracion': 'Decoración',
-      'electronica': 'Electrónica',
-      'libros': 'Libros',
-      'ropa': 'Ropa',
-      'otros': 'Otros'
-    };
-    return labels[categoria] || categoria;
   }
 
   onImageError(event: any): void {
@@ -414,5 +403,52 @@ export class ProductosComponent implements OnInit, OnDestroy {
       product_id: this.productoSeleccionado?.id || 0
     };
     this.ratingHover = 0;
+  }
+
+  // Método para cargar categorías desde la API
+  cargarCategorias(): void {
+    this.categoriasService.getCategoriasActivas().subscribe({
+      next: (response) => {
+        this.categoriasAPI = response?.data || [];
+        console.log('Categorías cargadas desde API:', this.categoriasAPI);
+      },
+      error: (error) => {
+        console.error('Error al cargar categorías:', error);
+        this.categoriasAPI = [];
+        console.log('No se pudieron cargar categorías desde la API');
+      }
+    });
+  }
+
+  // Método para obtener todas las categorías (solo desde la API)
+  getTodasCategorias(): any[] {
+    return this.categoriasAPI || [];
+  }
+
+  // Método para obtener el valor de una categoría
+  getCategoriaValue(categoria: any): string {
+    return categoria.name || categoria;
+  }
+
+  // Método mejorado para obtener etiqueta de categoría
+  getCategoriaLabel(categoria: any): string {
+    // Si es un objeto de la API, usar su nombre
+    if (categoria && typeof categoria === 'object' && categoria.name) {
+      return categoria.name;
+    }
+    
+    // Si es string, buscar en las categorías de la API
+    if (typeof categoria === 'string' && this.categoriasAPI && this.categoriasAPI.length > 0) {
+      const categoriaAPI = this.categoriasAPI.find(cat => 
+        cat.name.toLowerCase() === categoria.toLowerCase()
+      );
+      
+      if (categoriaAPI) {
+        return categoriaAPI.name;
+      }
+    }
+    
+    // Si no se encuentra en la API, devolver el string tal como está
+    return categoria;
   }
 }

@@ -159,6 +159,14 @@ html {
   box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
 }
 
+.categoria-info {
+  display: block;
+  margin-top: 4px;
+  color: #666;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
 .filtro-acciones {
   display: flex;
   align-items: flex-end;
