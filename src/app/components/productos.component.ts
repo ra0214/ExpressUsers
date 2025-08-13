@@ -267,8 +267,13 @@ export class ProductosComponent implements OnInit, OnDestroy {
     this.nuevoComentario.product_id = producto.id;
     this.cargarComentarios(producto.id);
     
-    // Intentar detectar el nombre del usuario automáticamente
-    this.detectarNombreUsuario();
+    // Recuperar el nombre guardado si existe
+    if (this.isBrowser) {
+      const nombreGuardado = localStorage.getItem('usuario_nombre');
+      if (nombreGuardado) {
+        this.nuevoComentario.user_name = nombreGuardado;
+      }
+    }
     
     // Hacer scroll suave a la sección de comentarios
     setTimeout(() => {
@@ -280,35 +285,6 @@ export class ProductosComponent implements OnInit, OnDestroy {
         });
       }
     }, 150);
-  }
-
-  detectarNombreUsuario(): void {
-    if (this.isBrowser) {
-      // Intentar obtener nombre desde localStorage primero
-      const nombreGuardado = localStorage.getItem('usuario_nombre');
-      if (nombreGuardado) {
-        this.nuevoComentario.user_name = nombreGuardado;
-        return;
-      }
-
-      // Intentar detectar desde las credenciales del navegador
-      if ('credentials' in navigator) {
-        navigator.credentials.get({
-          federated: {
-            providers: ['https://accounts.google.com']
-          }
-        } as any).then((credential: any) => {
-          if (credential && credential.name) {
-            this.nuevoComentario.user_name = credential.name;
-            // Guardar para próximas veces
-            localStorage.setItem('usuario_nombre', credential.name);
-          }
-        }).catch(() => {
-          // Si no funciona, no hacer nada
-          console.log('No se pudo detectar nombre automáticamente');
-        });
-      }
-    }
   }
 
   cargarComentarios(productId: number): void {
@@ -339,14 +315,8 @@ export class ProductosComponent implements OnInit, OnDestroy {
       localStorage.setItem('usuario_nombre', this.nuevoComentario.user_name.trim());
     }
 
-    const comentarioParaEnviar = {
-      name: this.nuevoComentario.user_name,
-      content: this.nuevoComentario.comment,
-      product_id: this.nuevoComentario.product_id,
-      rating: this.nuevoComentario.rating
-    };
-
-    this.comentariosService.agregarComentario(comentarioParaEnviar).subscribe({
+    // Enviar el comentario directamente, los nombres de propiedades ya coinciden con el backend
+    this.comentariosService.agregarComentario(this.nuevoComentario).subscribe({
       next: (response) => {
         this.sweetAlert.success('¡Comentario agregado!', 'Tu comentario ha sido publicado exitosamente');
         this.nuevoComentario.comment = '';
