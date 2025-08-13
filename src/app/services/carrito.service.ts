@@ -140,7 +140,7 @@ export class CarritoService {
   }
 
   // Método para enviar pedido por WhatsApp
-  enviarPedidoPorWhatsApp(resumen: ResumenPedido, numeroWhatsApp: string = '529612165495'): void {
+  enviarPedidoPorWhatsApp(resumen: ResumenPedido, numeroWhatsApp: string = '529613677737'): void {
     if (!this.isBrowser) return;
     
     // Mostrar alerta de confirmación antes de enviar

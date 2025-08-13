@@ -245,7 +245,7 @@
                 <div class="comentario-header">
                   <div class="comentario-autor">
                     <i class="fas fa-user-circle"></i>
-                    <span>{{ comentario.user_name }}</span>
+                    <span>{{ comentario.user_name || comentario.name }}</span>
                   </div>
                   <div class="comentario-rating">
                     <div class="estrellas">
@@ -261,7 +261,7 @@
                   </div>
                 </div>
                 <div class="comentario-contenido">
-                  <p>{{ comentario.comment }}</p>
+                  <p>{{ comentario.comment || comentario.content }}</p>
                 </div>
               </div>
             </div>
@@ -276,6 +276,10 @@
                   <label for="nombreUsuario">
                     <i class="fas fa-user"></i>
                     Tu nombre *
+                    <span *ngIf="nuevoComentario.user_name && nuevoComentario.user_name.length > 0" 
+                          class="nombre-detectado">
+                      (Detectado automáticamente)
+                    </span>
                   </label>
                   <input 
                     id="nombreUsuario"

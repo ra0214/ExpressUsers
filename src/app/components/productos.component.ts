@@ -32,7 +32,7 @@ export class ProductosComponent implements OnInit, OnDestroy {
   wsConnected = false;
   
   // Número de WhatsApp (cambiar por el número real)
-  private numeroWhatsApp = '529612165495'; // Formato: código país + número sin +
+  private numeroWhatsApp = '529613677737'; // Formato: código país + número sin +
   
   // Variables para el formulario de filtros
   categoriaSeleccionada: string = '';
@@ -267,6 +267,9 @@ export class ProductosComponent implements OnInit, OnDestroy {
     this.nuevoComentario.product_id = producto.id;
     this.cargarComentarios(producto.id);
     
+    // Intentar detectar el nombre del usuario automáticamente
+    this.detectarNombreUsuario();
+    
     // Hacer scroll suave a la sección de comentarios
     setTimeout(() => {
       const comentariosSection = document.getElementById('comentarios-section');
@@ -277,6 +280,35 @@ export class ProductosComponent implements OnInit, OnDestroy {
         });
       }
     }, 150);
+  }
+
+  detectarNombreUsuario(): void {
+    if (this.isBrowser) {
+      // Intentar obtener nombre desde localStorage primero
+      const nombreGuardado = localStorage.getItem('usuario_nombre');
+      if (nombreGuardado) {
+        this.nuevoComentario.user_name = nombreGuardado;
+        return;
+      }
+
+      // Intentar detectar desde las credenciales del navegador
+      if ('credentials' in navigator) {
+        navigator.credentials.get({
+          federated: {
+            providers: ['https://accounts.google.com']
+          }
+        } as any).then((credential: any) => {
+          if (credential && credential.name) {
+            this.nuevoComentario.user_name = credential.name;
+            // Guardar para próximas veces
+            localStorage.setItem('usuario_nombre', credential.name);
+          }
+        }).catch(() => {
+          // Si no funciona, no hacer nada
+          console.log('No se pudo detectar nombre automáticamente');
+        });
+      }
+    }
   }
 
   cargarComentarios(productId: number): void {
@@ -302,12 +334,24 @@ export class ProductosComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.comentariosService.agregarComentario(this.nuevoComentario).subscribe({
+    // Guardar el nombre para próximas veces
+    if (this.nuevoComentario.user_name.trim()) {
+      localStorage.setItem('usuario_nombre', this.nuevoComentario.user_name.trim());
+    }
+
+    const comentarioParaEnviar = {
+      name: this.nuevoComentario.user_name,
+      content: this.nuevoComentario.comment,
+      product_id: this.nuevoComentario.product_id,
+      rating: this.nuevoComentario.rating
+    };
+
+    this.comentariosService.agregarComentario(comentarioParaEnviar).subscribe({
       next: (response) => {
         this.sweetAlert.success('¡Comentario agregado!', 'Tu comentario ha sido publicado exitosamente');
         this.nuevoComentario.comment = '';
-        this.nuevoComentario.user_name = '';
         this.nuevoComentario.rating = 5;
+        // No limpiar el nombre para que se mantenga para el próximo comentario
         
         // Recargar comentarios
         if (this.productoSeleccionado) {
@@ -365,12 +409,12 @@ export class ProductosComponent implements OnInit, OnDestroy {
   // Métodos para estadísticas de comentarios
   calcularPromedioRating(): number {
     if (this.comentarios.length === 0) return 0;
-    const suma = this.comentarios.reduce((acc, comentario) => acc + comentario.rating, 0);
+    const suma = this.comentarios.reduce((acc: number, comentario: any) => acc + comentario.rating, 0);
     return suma / this.comentarios.length;
   }
 
   contarRating(rating: number): number {
-    return this.comentarios.filter(comentario => comentario.rating === rating).length;
+    return this.comentarios.filter((comentario: any) => comentario.rating === rating).length;
   }
 
   calcularPorcentajeRating(rating: number): number {
@@ -398,7 +442,7 @@ export class ProductosComponent implements OnInit, OnDestroy {
   limpiarFormulario(): void {
     this.nuevoComentario = {
       comment: '',
-      user_name: '',
+      user_name: localStorage.getItem('usuario_nombre') || '', // Mantener el nombre guardado
       rating: 5,
       product_id: this.productoSeleccionado?.id || 0
     };

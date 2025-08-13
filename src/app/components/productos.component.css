@@ -1288,3 +1288,16 @@ html {
     font-size: 1.3rem;
   }
 }
+
+/* Indicador de nombre detectado automáticamente */
+.nombre-detectado {
+  color: #28a745;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 12px;
+  display: inline-block;
+}
